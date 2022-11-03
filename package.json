@@ -23,8 +23,10 @@
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
-    "dev" : "concurrently \"npm run start\" \"npm run server\"",
-    "server": "cd server && node app.js"
+    "dev-mac" : "concurrently \"npm run start\" \"npm run server-mac\"",
+    "dev-win" : "concurrently \"npm run start\" \"npm run server-win\"",
+    "server-mac": "cd server && node app.js",
+    "server-win": "cd server && nodemon app.js"
   },
   "eslintConfig": {
     "extends": [
