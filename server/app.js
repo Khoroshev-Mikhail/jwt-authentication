@@ -8,7 +8,7 @@ app.use(function(req, res, next) {
 });
 app.use(express.json())
 app.get('/', (req, res) => {
-    return res.send('ara')
+    return res.status(200).json('Connection is good!')
 })
 const start = async () => {
     try{
