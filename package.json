@@ -11,6 +11,7 @@
     "@types/node": "^17.0.45",
     "@types/react": "^18.0.24",
     "@types/react-dom": "^18.0.8",
+    "flowbite-react": "^0.3.4",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-redux": "^8.0.4",
@@ -23,8 +24,8 @@
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
-    "dev-mac" : "concurrently \"npm run start\" \"npm run server-mac\"",
-    "dev-win" : "concurrently \"npm run start\" \"npm run server-win\"",
+    "dev-mac": "concurrently \"npm run start\" \"npm run server-mac\"",
+    "dev-win": "concurrently \"npm run start\" \"npm run server-win\"",
     "server-mac": "cd server && node app.js",
     "server-win": "cd server && nodemon app.js"
   },
@@ -47,6 +48,9 @@
     ]
   },
   "devDependencies": {
-    "concurrently": "^7.5.0"
+    "autoprefixer": "^10.4.13",
+    "concurrently": "^7.5.0",
+    "postcss": "^8.4.18",
+    "tailwindcss": "^3.2.2"
   }
 }

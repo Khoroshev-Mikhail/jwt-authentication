@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import './App.css';
+import Auth from './Components/Auth';
 
 function App() {
   const [connection, setConnection] = useState()
@@ -13,7 +14,8 @@ function App() {
   }, [])
   return (
     <div className="App">
-      {connection}
+      <h1>{connection}</h1>
+      <Auth />
     </div>
   );
 }
