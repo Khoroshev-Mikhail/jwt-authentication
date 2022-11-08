@@ -99,7 +99,7 @@ app.post('/refreshToken', (req, res) => {
                         await db.none('UPDATE users SET token = $1, refresh_token = $2 WHERE id = $3', [newToken, newRefresh, user.id])
                         return res.status(200).send({newToken, newRefresh})
                     }else{
-                        return res.sendStatus(408)
+                        return res.sendStatus(426)
                     }
                 }
             });
@@ -172,7 +172,7 @@ app.get('/any', async (req, res) => {
         if(!req.user){
             return res.sendStatus(401)
         }
-        return res.sendStatus(200)
+        return res.status(200).send('hello im any')
     } 
     catch(e) {
         return res.status(500).send(e.message)

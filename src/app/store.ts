@@ -70,8 +70,7 @@ export const anyThunk = createAsyncThunk(
               'Authorization': `Bearer ${localStorage.getItem('token')} ${localStorage.getItem('refreshToken')}`
           }
       })
-      const data = await response.json()
-      return data
+      return {ara: 22}
   }
 )
 const checkToken = (store: any) => (next: any) => (action: any) => {
@@ -118,7 +117,7 @@ const checkToken = (store: any) => (next: any) => (action: any) => {
     })
   }
   const result = next(action)
-  console.log('resul', result)
+  console.log('result', result)
   return result
 }
 export const store = configureStore({
