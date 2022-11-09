@@ -78,9 +78,11 @@ export const anyThunk = createAsyncThunk(
   }
 )
 const checkToken = (store: any) => (next: any) => async (action: any) => {
-  console.log('----------------------------начало мд', action.type)
-  // await new Promise((resolve, reject) => setTimeout(()=>{resolve(console.log(1))},1000))
-  if(store.getState().user.id > 0 && localStorage.getItem('jwtExpire') && new Date().getMinutes() - new Date(localStorage.getItem('jwtExpire') || new Date()).getMinutes() >= TOKEN_LIFE_TIME){
+  //Проблема в том: в статусе пендинг приходят новые токены. Далее уже вызывается другой слой с акшен/фулфиелд но запрос
+  // был отправлен со старым токеном который был перед статусом пендинг
+  console.log('----------------------------начало мд', action.type, action.statusCode)
+  console.log(localStorage.getItem('token'))
+  if(action.type.includes('pending') && store.getState().user.id > 0 && localStorage.getItem('jwtExpire') && new Date().getMinutes() - new Date(localStorage.getItem('jwtExpire') || new Date()).getMinutes() >= TOKEN_LIFE_TIME){
     console.log('Запрашиваю новый токен:')
     const refresh = await fetch('http://localhost:4000/refreshToken', {         
       method: 'POST',
@@ -92,16 +94,19 @@ const checkToken = (store: any) => (next: any) => async (action: any) => {
         refreshToken: localStorage.getItem('refreshToken')
       })
     })
-    const data = await refresh.json()   
-    localStorage.setItem('token', data.newToken)
-    headers.token = data.newToken
-    localStorage.setItem('refreshToken', data.newRefresh)
-    headers.refresh = data.newRefresh
-    localStorage.setItem('jwtExpire', data.jwtExpire)
-    console.log('Токены получены')
-    
-  }
+    if(refresh.status !== 426){
+      const data = await refresh.json()   
+      localStorage.setItem('token', data.newToken)
+      headers.token = data.newToken
+      localStorage.setItem('refreshToken', data.newRefresh)
+      headers.refresh = data.newRefresh
+      localStorage.setItem('jwtExpire', data.jwtExpire)
+      console.log('Токены получены')
+      return store.dispatch(action) //Здесь надо именно заного запустить диспатч с этим эе акшеном, иначе выполнится старый запрос, а он судя по всему захватывает хедеры
+      }
+    }
   const result = next(action)
+  console.log(localStorage.getItem('token'))
   console.log('----------------------------конец мд', result)
   return result
 }
