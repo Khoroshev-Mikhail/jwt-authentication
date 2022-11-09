@@ -46,14 +46,14 @@ function App() {
     authorization()
     getUsers()
     checkConnect()
-  }, [user])
+  }, [localStorage.getItem('token')])
   return (
     <div className="App">
       <Auth />
       <div className={`w-full sm:w-96 mx-auto my-4 p-4 rounded-lg border border-gray-200 dark:bg-gray-800 dark:border-gray-700 ${user.id ? 'bg-green-100' : 'bg-red-100'}`}>
         <h1>Store:</h1>
         <button onClick={()=>{dispatch(anyThunk())}}>Any</button>
-        <h1>{`Id: ${user.id}, Login: ${user.login}, Token: ${user.token ? 'TRUE' : 'NULL'}, REFRESH: ${user.refreshToken ? 'TRUE' : 'NULL'}`}</h1>
+        <h1>{`Id: ${user.id}, Login: ${user.login}, Token: ${localStorage.getItem('token') ? 'TRUE' : 'NULL'}, REFRESH: ${localStorage.getItem('refreshToken') ? 'TRUE' : 'NULL'}`}</h1>
       </div>
       <div className={`w-full sm:w-96 mx-auto my-4 p-4 rounded-lg border border-gray-200 dark:bg-gray-800 dark:border-gray-700 ${connection ? 'bg-green-100' : 'bg-red-100'}`}>
         {users.map((el: any, i: number) => {

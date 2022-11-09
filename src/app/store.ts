@@ -1,11 +1,9 @@
 import { configureStore, ThunkAction, Action, createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import { idText } from 'typescript';
+const TOKEN_LIFE_TIME = 1;
 
 export type User = {
   id: string | number, 
-  login: string, 
-  token: string | null,
-  refreshToken: string | null
+  login: string
 }
 export const loginThunk = createAsyncThunk(
   'loginThunk',
@@ -19,12 +17,14 @@ export const loginThunk = createAsyncThunk(
       })
       const data = await response.json()
       if(response.ok){
-        localStorage.setItem('id', data.id)
-        localStorage.setItem('login', data.login)
-        localStorage.setItem('token', data.token)
-        localStorage.setItem('refreshToken', data.refreshToken)
+          localStorage.setItem('id', data.id);
+          localStorage.setItem('login', data.login);
+          localStorage.setItem('token', data.token);
+          localStorage.setItem('refreshToken', data.refreshToken);
+          localStorage.setItem('jwtExpire', data.jwtExpire);
       }
-      return data
+      const {id, login} = data
+      return {id, login}
   }
 )
 export const exitThunk = createAsyncThunk(
@@ -37,6 +37,7 @@ export const exitThunk = createAsyncThunk(
         localStorage.removeItem('login')
         localStorage.removeItem('token')
         localStorage.removeItem('refreshToken')
+        localStorage.removeItem('jwtExpire')
       }
       return data
   }
@@ -44,24 +45,22 @@ export const exitThunk = createAsyncThunk(
 const user: User = {
   id: localStorage.getItem('id') || 0, 
   login: localStorage.getItem('login') || 'unknown', 
-  token: localStorage.getItem('token') || null,
-  refreshToken: localStorage.getItem('refreshToken') || null
 }
 const userSlice = createSlice({
   name: 'userSlice',
   initialState: user,
-  reducers: {
-    setToken: (state, action) => ({...state, token: action.payload}),
-    setRefresh: (state, action) => ({...state, refreshToken: action.payload})
-  },
+  reducers: {},
   extraReducers: (builder) => {
     builder.addCase(loginThunk.fulfilled, (_, action) => action.payload)
-    builder.addCase(loginThunk.rejected, (_, __) => ({ id: 0, login: 'unknown', token: null, refreshToken: null }))
+    builder.addCase(loginThunk.rejected, (_, __) => {
+      localStorage.removeItem('token')
+      localStorage.removeItem('refreshToken')
+      localStorage.removeItem('jwtExpire')
+      return { id: 0, login: 'unknown' }
+    })
     builder.addCase(exitThunk.fulfilled, (_, action) => action.payload)
-    // builder.addCase(exitThunk.rejected, (_, __) => ({ id: 0, login: 'unknown', token: null, refreshToken: null }))
   }
 })
-export const { setToken, setRefresh } = userSlice.actions
 export const anyThunk = createAsyncThunk(
   'anyThunk',
   async function() {
@@ -70,11 +69,18 @@ export const anyThunk = createAsyncThunk(
               'Authorization': `Bearer ${localStorage.getItem('token')} ${localStorage.getItem('refreshToken')}`
           }
       })
-      return {ara: 22}
+      return response.status
   }
 )
 const checkToken = (store: any) => (next: any) => (action: any) => {
-  if(/pending$/.test(action.type)){
+  const result = next(action)
+  if(action.type.includes('userSlice')){
+    return result
+  }
+  console.log('МидлВейр:', action, store.getState())
+  console.log(new Date().getMinutes() - new Date(localStorage.getItem('jwtExpire') || new Date()).getMinutes() >= TOKEN_LIFE_TIME)
+  if(localStorage.getItem('jwtExpire') && new Date().getMinutes() - new Date(localStorage.getItem('jwtExpire') || new Date()).getMinutes() >= TOKEN_LIFE_TIME){
+    console.log('Токен необходимо обновить, запрашиваю новый токен:')
     fetch('http://localhost:4000/checkToken', {         
         method: 'POST',
         headers: {
@@ -84,10 +90,10 @@ const checkToken = (store: any) => (next: any) => (action: any) => {
     })
     .then((res) =>{
       if(res.status === 200) {
-        console.log('Токен действителен')
+        console.log('Сервер ответил что токен действителен!')
       }
       if(res.status === 426){
-          console.log('Токен устарел')
+          console.log('Сервер подтвердил информацию о просрочке токена!')
           fetch('http://localhost:4000/refreshToken', {         
             method: 'POST',
             headers: {
@@ -99,14 +105,13 @@ const checkToken = (store: any) => (next: any) => (action: any) => {
             })
           })
           .then(async res =>{
-            console.log('Получена новая пара токенов')
             if(res.status === 200) {
               const data = await res.json()
+              console.log('Получена новая пара токенов', data)
 
               localStorage.setItem('token', data.newToken)
-              store.dispatch(setToken(data.newToken))
               localStorage.setItem('refreshToken', data.newRefresh)
-              store.dispatch(setRefresh(data.newRefresh))
+              localStorage.setItem('jwtExpire', data.jwtExpire)
 
               console.log('Все токены обновлены')
             }
@@ -116,8 +121,8 @@ const checkToken = (store: any) => (next: any) => (action: any) => {
       console.error('rej', rej.status)
     })
   }
-  const result = next(action)
-  console.log('result', result)
+
+  
   return result
 }
 export const store = configureStore({

@@ -88,20 +88,16 @@ app.post('/refreshToken', (req, res) => {
                     return res.sendStatus(500)
                 }
                 const user = await db.one('SELECT id, user_login, token, refresh_token FROM users WHERE id = $1', [decoded.id]);
-                if(user.token === headersToken && new Date().getMinutes() - new Date(decoded.date).getMinutes() < TOKEN_LIFE_TIME){
-                    return res.status(200).send(user.token, user.refresh_token)
+                if(user.refresh_token === headersRefresh && new Date().getHours() - new Date(decoded.date).getHours() < REFRESH_LIFE_HOURS){
+                    const date = new Date()
+                    const newToken = jwt.sign({ id: user.id, date }, SECRET);  
+                    const newRefresh = jwt.sign({ id: user.id, date }, SECRET_REFRESH);   
+                    await db.none('UPDATE users SET token = $1, refresh_token = $2 WHERE id = $3', [newToken, newRefresh, user.id])
+                    return res.status(200).send({newToken, newRefresh, jwtExpire: date})
                 }else{
-                    console.log(user.refresh_token === headersRefresh)
-                    if(user.refresh_token === headersRefresh && new Date().getHours() - new Date(decoded.date).getHours() < REFRESH_LIFE_HOURS){
-                        const date = new Date()
-                        const newToken = jwt.sign({ id: user.id, date }, SECRET);  
-                        const newRefresh = jwt.sign({ id: user.id, date }, SECRET_REFRESH);   
-                        await db.none('UPDATE users SET token = $1, refresh_token = $2 WHERE id = $3', [newToken, newRefresh, user.id])
-                        return res.status(200).send({newToken, newRefresh})
-                    }else{
-                        return res.sendStatus(426)
-                    }
+                    return res.sendStatus(426)
                 }
+                
             });
         } else{
             return res.sendStatus(400)
@@ -151,7 +147,7 @@ app.post('/auth', jsonParser, async (req, res) => {
         const token = jwt.sign({ id: user.id, date }, SECRET);   
         const refreshToken = jwt.sign({ id: user.id, date }, SECRET_REFRESH);   
         await db.none('UPDATE users SET token = $1, refresh_token = $2 WHERE id = $3', [token, refreshToken, user.id])
-        return res.status(200).send({id: user.id, login: user.user_login, token, refreshToken});
+        return res.status(200).send({id: user.id, login: user.user_login, token, refreshToken, jwtExpire: date});
     } 
     catch(e) {
         return res.status(500).send(e.message)
@@ -172,7 +168,7 @@ app.get('/any', async (req, res) => {
         if(!req.user){
             return res.sendStatus(401)
         }
-        return res.status(200).send('hello im any')
+        return res.sendStatus(500)
     } 
     catch(e) {
         return res.status(500).send(e.message)
