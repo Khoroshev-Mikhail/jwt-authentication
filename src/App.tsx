@@ -46,7 +46,7 @@ function App() {
     authorization()
     getUsers()
     checkConnect()
-  }, [localStorage.getItem('token')])
+  }, [user])
   return (
     <div className="App">
       <Auth />

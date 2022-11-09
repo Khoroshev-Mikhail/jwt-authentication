@@ -168,7 +168,7 @@ app.get('/any', async (req, res) => {
         if(!req.user){
             return res.sendStatus(401)
         }
-        return res.sendStatus(500)
+        return res.sendStatus(200)
     } 
     catch(e) {
         return res.status(500).send(e.message)
