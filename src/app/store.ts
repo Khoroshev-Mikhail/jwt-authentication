@@ -6,19 +6,19 @@ import type {
   FetchBaseQueryError,
 } from '@reduxjs/toolkit/query'
 
-const baseQuery = fetchBaseQuery({ baseUrl: 'http://localhost:4000/any',
-prepareHeaders: (headers: Headers) => {
-  headers.set('Authorization', `Bearer ${localStorage.getItem('token') || 'unknown' } ${localStorage.getItem('refreshToken') || 'unknown'}`)
-  return headers
-}
+const baseQuery = fetchBaseQuery({ 
+  baseUrl: 'http://localhost:4000/any',
+  prepareHeaders: (headers: Headers) => {
+    headers.set('Authorization', `Bearer ${localStorage.getItem('token') || 'unknown' } ${localStorage.getItem('refreshToken') || 'unknown'}`)
+    return headers
+  }
  })
-const baseQueryWithReauth: BaseQueryFn<
-  string | FetchArgs,
-  unknown,
-  FetchBaseQueryError
-> = async (args, api, extraOptions) => {
+const baseQueryWithReauth: BaseQueryFn<string | FetchArgs, unknown, FetchBaseQueryError> = async (args, api, extraOptions) => {
   let result = await baseQuery(args, api, extraOptions)
-  console.log('result', result)
+  console.log(result.error)
+  if(result.error?.status){
+    console.log('Не авторизован')
+  }
   return result
 }
 
@@ -28,7 +28,7 @@ export const anyAPI = createApi({
   tagTypes: ['any'],
   endpoints: (builder) => ({
     getAny: builder.query<any, void>({
-        query: () =>  `/`,
+        query: () =>  ``,
         providesTags: (result) =>
                 result
                 ? [
