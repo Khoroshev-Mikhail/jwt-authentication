@@ -168,13 +168,24 @@ app.get('/any', async (req, res) => {
         if(!req.user){
             return res.sendStatus(401)
         }
-        return res.sendStatus(200)
+        return res.status(200).send([{any: Math.random() * 1000}, {any: Math.random() * 1000}])
     } 
     catch(e) {
         return res.status(500).send(e.message)
     }
-    
-    
+})
+
+app.post('/any', async (req, res) => {
+    try {
+        console.log('server::', req.body.id)
+        if(!req.user){
+            return res.sendStatus(401)
+        }
+        return res.status(200).send([{any: Math.random() * 1000}, {any: Math.random() * 1000}])
+    } 
+    catch(e) {
+        return res.status(500).send(e.message)
+    }
 })
 app.get('/clearToken', jsonParser, async (req, res) => {
     try {

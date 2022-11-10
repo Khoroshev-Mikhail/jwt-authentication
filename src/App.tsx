@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import './App.css';
 import { useAppDispatch } from './app/hooks';
-import { anyThunk, RootState } from './app/store';
+import { anyThunk, RootState, useGetAnyQuery, useSetAnyMutation } from './app/store';
 import Auth from './Components/Auth';
 
 function App() {
@@ -11,6 +11,8 @@ function App() {
   const [connection, setConnection] = useState<string | boolean>(false)
   const [auth, setAuth] = useState<boolean>(false)
   const [users, setUsers] = useState([])
+  const { data, isSuccess } = useGetAnyQuery()
+  const [setAny] = useSetAnyMutation()
 
   //Здесь добавить проверку на ошибки
   let bearer = `unknown unknown`
@@ -52,7 +54,7 @@ function App() {
       <Auth />
       <div className={`w-full sm:w-96 mx-auto my-4 p-4 rounded-lg border border-gray-200 dark:bg-gray-800 dark:border-gray-700 ${user.id ? 'bg-green-100' : 'bg-red-100'}`}>
         <h1>Store:</h1>
-        <button onClick={()=>{dispatch(anyThunk())}}>Any</button>
+        <button onClick={()=>{setAny({id: Math.random() * 1000})}}>Any {isSuccess && data[0].any}</button>
         <h1>{`Id: ${user.id}, Login: ${user.login}, Token: ${localStorage.getItem('token') ? 'TRUE' : 'NULL'}, REFRESH: ${localStorage.getItem('refreshToken') ? 'TRUE' : 'NULL'}`}</h1>
       </div>
       <div className={`w-full sm:w-96 mx-auto my-4 p-4 rounded-lg border border-gray-200 dark:bg-gray-800 dark:border-gray-700 ${connection ? 'bg-green-100' : 'bg-red-100'}`}>
