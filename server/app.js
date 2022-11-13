@@ -67,7 +67,7 @@ app.post('/checkToken', (req, res) => {
                 if(user.token === headersToken && new Date().getMinutes() - new Date(decoded.date).getMinutes() < TOKEN_LIFE_TIME){
                     return res.sendStatus(200)
                 }else{
-                    return res.sendStatus(426)
+                    return res.sendStatus(401)
                 }
             });
         } else{

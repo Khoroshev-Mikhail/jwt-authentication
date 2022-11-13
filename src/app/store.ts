@@ -7,6 +7,7 @@ import type {
 } from '@reduxjs/toolkit/query'
 
 const baseQuery = fetchBaseQuery({ 
+  //const token = (getState() as RootState).userToken;
   baseUrl: 'http://localhost:4000/any',
   prepareHeaders: (headers: Headers) => {
     headers.set('Authorization', `Bearer ${localStorage.getItem('token') || 'unknown' } ${localStorage.getItem('refreshToken') || 'unknown'}`)
@@ -15,8 +16,8 @@ const baseQuery = fetchBaseQuery({
  })
 const baseQueryWithReauth: BaseQueryFn<string | FetchArgs, unknown, FetchBaseQueryError> = async (args, api, extraOptions) => {
   let result = await baseQuery(args, api, extraOptions)
-  console.log(result.error)
-  if(result.error?.status){
+  console.log(result.error?.originalStatus)
+  if(result.error?.originalStatus === 401 || result.error?.status === 401){
     console.log('Не авторизован')
   }
   return result
